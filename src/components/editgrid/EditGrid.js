@@ -10,6 +10,7 @@ const EditRowState = {
   New: 'new',
   Editing: 'editing',
   Saved: 'saved',
+  Viewing: 'viewing',
   Removed: 'removed',
   Draft: 'draft',
 };
@@ -185,7 +186,7 @@ export default class EditGridComponent extends NestedArrayComponent {
     const massageContainerRef = 'messageContainer';
 
     if (refs[`${massageContainerRef}`] === 'single') {
-      this.refs[`${massageContainerRef}`] = element.querySelector(`:scope > [ref="${massageContainerRef}"]`);
+      this.refs[`${massageContainerRef}`] = [...element.children].filter(elem => elem.attributes?.ref?.value === massageContainerRef)[0];
     }
   }
 
@@ -244,7 +245,7 @@ export default class EditGridComponent extends NestedArrayComponent {
   }
 
   isOpen(editRow) {
-    return [EditRowState.New, EditRowState.Editing].includes(editRow.state);
+    return [EditRowState.New, EditRowState.Editing, EditRowState.Viewing].includes(editRow.state);
   }
 
   render(children) {
@@ -563,10 +564,7 @@ export default class EditGridComponent extends NestedArrayComponent {
       return;
     }
     editRow.prevState = editRow.state;
-
-    if (!this.options.readOnly) {
-      editRow.state = EditRowState.Editing;
-    }
+    editRow.state = this.options.readOnly ? EditRowState.Viewing :  EditRowState.Editing;
 
     const dataSnapshot = fastCloneDeep(editRow.data);
 
@@ -706,7 +704,7 @@ export default class EditGridComponent extends NestedArrayComponent {
 
   updateRowsComponents(rowIndex) {
     this.editRows.slice(rowIndex).forEach((row, index) => {
-      this.updateComponentsRowIndex(row.components, index);
+      this.updateComponentsRowIndex(row.components, rowIndex + index);
     });
   }
 
